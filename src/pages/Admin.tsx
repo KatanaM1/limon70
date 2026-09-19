@@ -8,12 +8,13 @@ export default function Admin() {
   const { products, add, update, remove } = useProducts();
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isAdmin()) {
     return <p className="center">Доступ запрещён 🔒</p>;
   }
 
-  const closeForm = () => { setCreating(false); setEditing(null); };
+  const closeForm = () => { setCreating(false); setEditing(null); setError(null); };
 
   return (
     <div>
@@ -26,6 +27,12 @@ export default function Admin() {
         )}
       </div>
 
+      {error && (
+        <div style={{ background: '#fee', color: '#c00', padding: 12, borderRadius: 12, marginBottom: 12, fontSize: 13 }}>
+          <b>Ошибка:</b> {error}
+        </div>
+      )}
+
       {(creating || editing) && (
         <div className="form-card">
           <h3>{editing ? 'Редактировать' : 'Новый товар'}</h3>
@@ -33,9 +40,15 @@ export default function Admin() {
             initial={editing ?? undefined}
             onCancel={closeForm}
             onSubmit={async (data) => {
-              if (editing) await update(editing.id, data);
-              else await add(data);
-              closeForm();
+              try {
+                setError(null);
+                if (editing) await update(editing.id, data);
+                else await add(data);
+                closeForm();
+              } catch (e: any) {
+                console.error('SAVE ERROR:', e);
+                setError(e?.message ?? String(e));
+              }
             }}
           />
         </div>
@@ -45,12 +58,12 @@ export default function Admin() {
         {products.map((p) => (
           <div key={p.id} className="admin-row">
             <div className="admin-row__photo">
-              {p.photos[0] ? <img src={p.photos[0]} alt="" /> : <span>👕</span>}
+              {p.photos[0] ? <img src={p.photos[0]} alt="" /> : <span>👔</span>}
             </div>
             <div className="admin-row__info">
               <p className="admin-row__title">{p.title}</p>
               <p className="admin-row__meta">
-                {p.price} ₽ · {p.category}{!p.inStock && ' · скрыт'}
+                {p.price} ₽{!p.inStock && ' · скрыт'}
               </p>
             </div>
             <button onClick={() => setEditing(p)} className="btn btn--ghost btn--sm">✏️</button>

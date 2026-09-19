@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { uploadImageToImgBB } from '../lib/imgbb'
+import { uploadImageToImgBB } from '../lib/imgbb';
 import type { Product, ProductInput } from '../types';
 
-const CATEGORIES = ['Футболки', 'Штаны', 'Куртки', 'Аксессуары'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 type Props = {
@@ -16,7 +15,6 @@ export default function ProductForm({ initial, onSubmit, onCancel }: Props) {
   const [description, setDescription] = useState(initial?.description ?? '');
   const [price, setPrice] = useState(initial?.price ?? 0);
   const [oldPrice, setOldPrice] = useState<number | ''>(initial?.oldPrice ?? '');
-  const [category, setCategory] = useState(initial?.category ?? CATEGORIES[0]);
   const [sizes, setSizes] = useState<string[]>(initial?.sizes ?? []);
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const [inStock, setInStock] = useState(initial?.inStock ?? true);
@@ -26,36 +24,40 @@ export default function ProductForm({ initial, onSubmit, onCancel }: Props) {
   const toggleSize = (s: string) =>
     setSizes((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
 
-const handleUpload = async (files: FileList | null) => {
-  console.log('🔥 handleUpload, файлов:', files?.length ?? 0);
-  if (!files?.length) return;
-  setUploading(true);
-  try {
-    const urls: string[] = [];
-    for (const file of Array.from(files).slice(0, 5)) {
-      console.log('📤 Загружаю:', file.name);
-      const url = await uploadImageToImgBB(file);   // ← здесь
-      console.log('✅ Готово:', url);
-      urls.push(url);
+  const handleUpload = async (files: FileList | null) => {
+    console.log('🔥 handleUpload, файлов:', files?.length ?? 0);
+    if (!files?.length) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files).slice(0, 5)) {
+        console.log('📤 Загружаю:', file.name);
+        const url = await uploadImageToImgBB(file);
+        console.log('✅ Готово:', url);
+        urls.push(url);
+      }
+      setPhotos((p) => [...p, ...urls].slice(0, 5));
+    } catch (e) {
+      console.error('❌ Ошибка загрузки в ImgBB:', e);
+      alert('Не удалось загрузить фото: ' + (e as Error).message);
+    } finally {
+      setUploading(false);
     }
-    setPhotos((p) => [...p, ...urls].slice(0, 5));
-  } catch (e) {
-    console.error('❌ Ошибка загрузки в ImgBB:', e);
-    alert('Не удалось загрузить фото: ' + (e as Error).message);
-  } finally {
-    setUploading(false);
-  }
-};
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
       await onSubmit({
-        title, description,
+        title,
+        description,
         price: Number(price),
         oldPrice: oldPrice === '' ? undefined : Number(oldPrice),
-        category, sizes, photos, inStock,
+        category: 'Костюмы',
+        sizes,
+        photos,
+        inStock,
       });
     } finally {
       setSaving(false);
@@ -83,13 +85,6 @@ const handleUpload = async (files: FileList | null) => {
           <label>Старая цена</label>
           <input className="input" type="number" value={oldPrice} onChange={(e) => setOldPrice(e.target.value === '' ? '' : Number(e.target.value))} />
         </div>
-      </div>
-
-      <div className="field">
-        <label>Категория</label>
-        <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
-          {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-        </select>
       </div>
 
       <div className="field">

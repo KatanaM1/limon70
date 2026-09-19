@@ -12,7 +12,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {product.photos[0] ? (
           <img src={product.photos[0]} alt={product.title} />
         ) : (
-          <span>👕</span>
+          <span>👔</span>
         )}
         {discount > 0 && <span className="badge">−{discount}%</span>}
         {!product.inStock && <span className="card__overlay">Нет в наличии</span>}
