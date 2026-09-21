@@ -20,10 +20,17 @@ export const getTgUser = (): TgUser | null => {
 };
 
 export const isAdmin = (): boolean => {
-    if (import.meta.env.DEV) return true;
+  if (import.meta.env.DEV) return true;
+
   const user = getTgUser();
-  const adminId = Number(import.meta.env.VITE_ADMIN_TELEGRAM_ID);
-  return !!user && user.id === adminId;
+  if (!user) return false;
+
+  const adminIds = [
+    Number(import.meta.env.VITE_ADMIN_TELEGRAM_ID),
+    Number(import.meta.env.VITE_ADMIN_TELEGRAM_ID_2),
+  ].filter((id) => !Number.isNaN(id));
+
+  return adminIds.includes(user.id);
 };
 
 export const haptic = (style: 'light' | 'medium' | 'heavy' = 'light') => {
